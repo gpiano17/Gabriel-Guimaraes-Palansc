@@ -1,0 +1,8 @@
+{
+  "name": "Maestro AI: Ultimate Composition Academy",
+  "description": "A comprehensive, AI-powered music composition and production platform featuring deep-dives into harmony, genre-specific theory, and real-time AI mentoring.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
