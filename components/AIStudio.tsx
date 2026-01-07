@@ -1,7 +1,7 @@
 
 import React, { useState, useRef } from 'react';
 import { GoogleGenAI } from "@google/genai";
-import { generateInspirationVideo, editMusicImage, getMusicAdvice } from '../services/geminiService';
+import { generateInspirationVideo, editMusicImage, getMusicAdvice } from '../services/geminiService.ts';
 
 interface SongSection {
   id: string;

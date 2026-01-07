@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { GoogleGenAI, Modality, LiveServerMessage } from '@google/genai';
-import { encode, decode, decodeAudioData } from '../services/geminiService';
+import { encode, decode, decodeAudioData } from '../services/geminiService.ts';
 
 const Coach: React.FC = () => {
   const [isActive, setIsActive] = useState(false);

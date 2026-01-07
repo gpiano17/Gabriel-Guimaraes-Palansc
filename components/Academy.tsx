@@ -1,7 +1,17 @@
 
-import React, { useState, useEffect } from 'react';
-import { COURSE_MODULES, GENRE_COLORS } from '../constants';
-import { Difficulty, Genre, Lesson, ChordData } from '../types';
+import React, { useState, useEffect, useRef } from 'react';
+import { COURSE_MODULES, GENRE_COLORS } from '../constants.ts';
+import { Difficulty, Genre, Lesson, ChordData } from '../types.ts';
+
+const NOTE_FREQUENCIES: Record<string, number> = {
+  'C': 261.63, 'C#': 277.18, 'Db': 277.18,
+  'D': 293.66, 'D#': 311.13, 'Eb': 311.13,
+  'E': 329.63,
+  'F': 349.23, 'F#': 369.99, 'Gb': 369.99,
+  'G': 392.00, 'G#': 415.30, 'Ab': 415.30,
+  'A': 440.00, 'A#': 466.16, 'Bb': 466.16,
+  'B': 493.88
+};
 
 const PIANO_KEYS = [
   { note: 'C', color: 'white' }, { note: 'C#', color: 'black' },
@@ -24,6 +34,8 @@ const ChordVisualizer: React.FC<{ chords: ChordData[] }> = ({ chords }) => {
   const [selectedChordIndex, setSelectedChordIndex] = useState(0);
   const [inversion, setInversion] = useState(0);
   const [voicing, setVoicing] = useState<'closed' | 'open'>('closed');
+  const [isPlaying, setIsPlaying] = useState(false);
+  const audioContextRef = useRef<AudioContext | null>(null);
 
   const currentChord = chords[selectedChordIndex];
 
@@ -34,6 +46,7 @@ const ChordVisualizer: React.FC<{ chords: ChordData[] }> = ({ chords }) => {
       if (first) notes.push(first + '2');
     }
     if (voicing === 'open' && notes.length >= 3) {
+      // Simplistic: drop the 2nd note (from bottom) an octave
       const secondNote = notes[1];
       notes[1] = secondNote + '2';
     }
@@ -42,45 +55,91 @@ const ChordVisualizer: React.FC<{ chords: ChordData[] }> = ({ chords }) => {
 
   const activeNotes = getActiveNotes();
 
+  const playChord = async () => {
+    if (isPlaying) return;
+    setIsPlaying(true);
+
+    if (!audioContextRef.current) {
+      audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+    }
+    const ctx = audioContextRef.current;
+    
+    const oscillators = activeNotes.map(n => {
+      const name = n.replace('2', '');
+      const isHigher = n.includes('2');
+      let freq = NOTE_FREQUENCIES[name] || 261.63;
+      if (isHigher) freq *= 2;
+      
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(freq, ctx.currentTime);
+      
+      gain.gain.setValueAtTime(0, ctx.currentTime);
+      gain.gain.linearRampToValueAtTime(0.2 / activeNotes.length, ctx.currentTime + 0.05);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.5);
+      
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      
+      return osc;
+    });
+
+    oscillators.forEach(osc => {
+      osc.start();
+      osc.stop(ctx.currentTime + 1.6);
+    });
+
+    setTimeout(() => setIsPlaying(false), 1600);
+  };
+
   return (
-    <div className="bg-slate-900 p-8 rounded-[2rem] text-white shadow-2xl border border-slate-800 my-8">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+    <div className="bg-slate-900 p-8 rounded-[2.5rem] text-white shadow-2xl border border-slate-800 my-10 overflow-hidden">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-6">
         <div>
-          <h4 className="text-sm font-black text-indigo-400 uppercase tracking-widest mb-1">Interactive Chord Lab</h4>
-          <div className="flex items-center gap-3">
+          <h4 className="text-xs font-black text-indigo-400 uppercase tracking-[0.2em] mb-2">Chord Analysis Laboratory</h4>
+          <div className="flex items-center gap-4">
             <select 
               value={selectedChordIndex}
               onChange={(e) => { setSelectedChordIndex(Number(e.target.value)); setInversion(0); }}
-              className="bg-slate-800 border border-slate-700 text-white font-bold rounded-xl px-4 py-2 outline-none focus:ring-2 focus:ring-indigo-500"
+              className="bg-slate-800 border border-slate-700 text-white font-black text-lg rounded-2xl px-5 py-3 outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer transition-all hover:bg-slate-750"
             >
               {chords.map((c, i) => <option key={c.name} value={i}>{c.name}</option>)}
             </select>
+            <button 
+              onClick={playChord}
+              disabled={isPlaying}
+              className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all ${isPlaying ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-indigo-400 hover:scale-110 active:scale-95 shadow-lg'}`}
+            >
+              <i className={`fa-solid ${isPlaying ? 'fa-volume-high' : 'fa-play'} text-xl`}></i>
+            </button>
           </div>
         </div>
 
-        <div className="flex gap-4">
-          <div className="space-y-2">
-            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-tighter">Inversion</p>
-            <div className="flex bg-slate-800 p-1 rounded-xl">
+        <div className="flex flex-wrap gap-6">
+          <div className="space-y-3">
+            <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest text-center">Inversion</p>
+            <div className="flex bg-slate-800/50 p-1.5 rounded-2xl border border-slate-700">
               {[0, 1, 2].map((inv) => (
                 <button
                   key={inv}
                   onClick={() => setInversion(inv)}
-                  className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${inversion === inv ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}
+                  className={`px-4 py-2 rounded-xl text-xs font-black transition-all ${inversion === inv ? 'bg-indigo-600 text-white shadow-xl' : 'text-slate-400 hover:text-white'}`}
                 >
                   {inv === 0 ? 'Root' : inv === 1 ? '1st' : '2nd'}
                 </button>
               ))}
             </div>
           </div>
-          <div className="space-y-2">
-            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-tighter">Voicing</p>
-            <div className="flex bg-slate-800 p-1 rounded-xl">
+          <div className="space-y-3">
+            <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest text-center">Voicing</p>
+            <div className="flex bg-slate-800/50 p-1.5 rounded-2xl border border-slate-700">
               {(['closed', 'open'] as const).map((v) => (
                 <button
                   key={v}
                   onClick={() => setVoicing(v)}
-                  className={`px-3 py-1 rounded-lg text-xs font-bold transition-all capitalize ${voicing === v ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}
+                  className={`px-4 py-2 rounded-xl text-xs font-black transition-all capitalize ${voicing === v ? 'bg-indigo-600 text-white shadow-xl' : 'text-slate-400 hover:text-white'}`}
                 >
                   {v}
                 </button>
@@ -90,24 +149,44 @@ const ChordVisualizer: React.FC<{ chords: ChordData[] }> = ({ chords }) => {
         </div>
       </div>
 
-      <div className="relative h-48 bg-slate-800 rounded-xl border border-slate-700 overflow-hidden flex select-none">
+      <div className="relative h-60 bg-slate-800/50 rounded-[2rem] border border-slate-700/50 overflow-hidden flex select-none p-4 backdrop-blur-sm">
         {PIANO_KEYS.map((k, i) => {
           const isActive = activeNotes.some(n => n === k.note || n === k.note + '2');
           return (
             <div 
               key={i}
-              className={`relative flex-1 border-r border-slate-700 transition-colors ${k.color === 'white' ? 'bg-white h-full' : 'bg-slate-900 h-2/3 z-10 -mx-3 w-6 rounded-b-md border-x border-slate-800'}`}
-              style={k.color === 'black' ? { minWidth: '1.5rem', maxWidth: '1.5rem' } : {}}
+              className={`relative flex-1 border-r border-slate-700/20 transition-all duration-300 ${k.color === 'white' ? 'bg-white rounded-b-lg' : 'bg-slate-900 h-2/3 z-10 -mx-4 w-8 rounded-b-xl border-x border-slate-800 shadow-2xl'}`}
+              style={k.color === 'black' ? { minWidth: '1.8rem', maxWidth: '1.8rem' } : {}}
             >
               {isActive && (
-                <div className={`absolute bottom-4 left-1/2 -translate-x-1/2 w-3 h-3 rounded-full animate-bounce ${k.color === 'white' ? 'bg-indigo-600' : 'bg-indigo-400'}`}></div>
+                <div className={`absolute bottom-6 left-1/2 -translate-x-1/2 w-4 h-4 rounded-full shadow-[0_0_15px_rgba(99,102,241,0.8)] ${k.color === 'white' ? 'bg-indigo-600' : 'bg-indigo-400'} animate-bounce`}></div>
               )}
               {k.color === 'white' && (
-                <span className="absolute bottom-2 left-1/2 -translate-x-1/2 text-[8px] font-bold text-slate-300 uppercase">{k.note.replace('2','')}</span>
+                <span className="absolute bottom-3 left-1/2 -translate-x-1/2 text-[9px] font-black text-slate-300 uppercase tracking-tighter">
+                  {k.note.replace('2','')}
+                </span>
               )}
             </div>
           );
         })}
+      </div>
+      
+      <div className="mt-8 flex justify-between items-center bg-slate-800/30 p-5 rounded-2xl border border-slate-700/50">
+        <div className="flex items-center gap-6">
+          <div className="flex flex-col">
+            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Active Notes</span>
+            <div className="flex gap-2 mt-1">
+              {activeNotes.map((n, i) => (
+                <span key={i} className="text-sm font-bold bg-indigo-500/10 text-indigo-400 px-3 py-1 rounded-lg border border-indigo-500/20">
+                  {n.replace('2', '')}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+        <p className="text-slate-400 text-xs italic font-medium">
+          Manipulate inversions to see how the interval structure shifts.
+        </p>
       </div>
     </div>
   );
@@ -293,7 +372,7 @@ const Academy: React.FC = () => {
                         </span>
                       </div>
                       <div className="absolute top-6 left-6">
-                        <span className={`text-[9px] font-black px-3 py-1.5 rounded-full uppercase tracking-widest border backdrop-blur-md shadow-sm ${GENRE_COLORS[lesson.genre].replace('bg-', 'bg-').replace('text-', 'text-')}`}>
+                        <span className={`text-[9px] font-black px-3 py-1.5 rounded-full uppercase tracking-widest border backdrop-blur-md shadow-sm ${GENRE_COLORS[lesson.genre]}`}>
                           {lesson.genre}
                         </span>
                       </div>

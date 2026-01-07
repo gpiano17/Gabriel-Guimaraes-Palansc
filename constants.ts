@@ -14,7 +14,11 @@ export const COURSE_MODULES: CourseModule[] = [
         difficulty: Difficulty.BEGINNER,
         content: 'Musical notation is a language. The lines and spaces of the staff represent specific pitches. Clefs act as a key to unlock these pitches...',
         xpValue: 100,
-        imageUrl: 'https://images.unsplash.com/photo-1507838153414-b4b713384a76?auto=format&fit=crop&q=80&w=400'
+        imageUrl: 'https://images.unsplash.com/photo-1507838153414-b4b713384a76?auto=format&fit=crop&q=80&w=400',
+        chords: [
+          { name: 'Middle C', root: 'C', notes: ['C'] },
+          { name: 'G Major Triad', root: 'G', notes: ['G', 'B', 'D'] }
+        ]
       },
       {
         id: 'rhythm-simple',
@@ -40,7 +44,10 @@ export const COURSE_MODULES: CourseModule[] = [
         difficulty: Difficulty.BEGINNER,
         content: 'W-W-H-W-W-W-H. This simple pattern is the DNA of Western music...',
         xpValue: 150,
-        imageUrl: 'https://images.unsplash.com/photo-1511379938547-c1f69419868d?auto=format&fit=crop&q=80&w=400'
+        imageUrl: 'https://images.unsplash.com/photo-1511379938547-c1f69419868d?auto=format&fit=crop&q=80&w=400',
+        chords: [
+          { name: 'C Major Scale (Root)', root: 'C', notes: ['C', 'D', 'E', 'F', 'G', 'A', 'B'] }
+        ]
       },
       {
         id: 'triad-construction',
@@ -54,7 +61,8 @@ export const COURSE_MODULES: CourseModule[] = [
         chords: [
           { name: 'C Major', root: 'C', notes: ['C', 'E', 'G'] },
           { name: 'C Minor', root: 'C', notes: ['C', 'Eb', 'G'] },
-          { name: 'C Dim', root: 'C', notes: ['C', 'Eb', 'Gb'] }
+          { name: 'C Dim', root: 'C', notes: ['C', 'Eb', 'Gb'] },
+          { name: 'C Aug', root: 'C', notes: ['C', 'E', 'G#'] }
         ]
       }
     ]
@@ -74,7 +82,8 @@ export const COURSE_MODULES: CourseModule[] = [
         imageUrl: 'https://images.unsplash.com/photo-1593697972410-24750172949f?auto=format&fit=crop&q=80&w=400',
         chords: [
           { name: 'G7', root: 'G', notes: ['G', 'B', 'D', 'F'] },
-          { name: 'C7', root: 'C', notes: ['C', 'E', 'G', 'Bb'] }
+          { name: 'C7', root: 'C', notes: ['C', 'E', 'G', 'Bb'] },
+          { name: 'F7', root: 'F', notes: ['F', 'A', 'C', 'Eb'] }
         ]
       },
       {
@@ -85,7 +94,11 @@ export const COURSE_MODULES: CourseModule[] = [
         difficulty: Difficulty.INTERMEDIATE,
         content: 'A V/V (five of five) chord adds a sudden splash of color and direction to a phrase...',
         xpValue: 250,
-        imageUrl: 'https://images.unsplash.com/photo-1415201374777-4192eef36069?auto=format&fit=crop&q=80&w=400'
+        imageUrl: 'https://images.unsplash.com/photo-1415201374777-4192eef36069?auto=format&fit=crop&q=80&w=400',
+        chords: [
+          { name: 'D7 (V/V in C)', root: 'D', notes: ['D', 'F#', 'A', 'C'] },
+          { name: 'A7 (V/ii in C)', root: 'A', notes: ['A', 'C#', 'E', 'G'] }
+        ]
       }
     ]
   },
@@ -114,7 +127,8 @@ export const COURSE_MODULES: CourseModule[] = [
         imageUrl: 'https://images.unsplash.com/photo-1459749411177-042180ce673c?auto=format&fit=crop&q=80&w=400',
         chords: [
           { name: 'F Minor (iv)', root: 'F', notes: ['F', 'Ab', 'C'] },
-          { name: 'Ab Major (bVI)', root: 'Ab', notes: ['Ab', 'C', 'Eb'] }
+          { name: 'Ab Major (bVI)', root: 'Ab', notes: ['Ab', 'C', 'Eb'] },
+          { name: 'Bb Major (bVII)', root: 'Bb', notes: ['Bb', 'D', 'F'] }
         ]
       }
     ]
@@ -133,7 +147,8 @@ export const COURSE_MODULES: CourseModule[] = [
         xpValue: 500,
         imageUrl: 'https://images.unsplash.com/photo-1514525253361-bee8d4078440?auto=format&fit=crop&q=80&w=400',
         chords: [
-          { name: 'C13(b9)', root: 'C', notes: ['C', 'E', 'Bb', 'Db', 'A'] }
+          { name: 'C13(b9)', root: 'C', notes: ['C', 'E', 'Bb', 'Db', 'A'] },
+          { name: 'G7(alt)', root: 'G', notes: ['G', 'B', 'F', 'Ab', 'Bb', 'Eb'] }
         ]
       },
       {
